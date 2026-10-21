@@ -1,46 +1,39 @@
-# Truck-Cargo-Load-Problem-by-Genetic-Algorithm
+# Truck cargo load by genetic algorithm
 
-This problem helps to load Cargo on Truck / Cargo-ships taking profit into account.It deals with loading minimum weight of load and maximizing profit.Code is within Cargo_load.cpp while Cargo_data.csv is given as test file.
+Chooses which loads to put on a truck or cargo ship when the hold has a weight limit and each load has a profit. The search is a genetic algorithm over a 0/1 knapsack: a gene is 1 when that load is taken and 0 when it is left behind.
 
-# Genetic Algorithm
+`Cargo_load.cpp` is the program. `Cargo_data.csv` is the sample cargo list.
 
-Genetic Algorithm (GA) is a search-based optimization technique based on the principles of Genetics and Natural Selection. It is frequently used to find optimal or near-optimal solutions to difficult problems which otherwise would take a lifetime to solve. It is frequently used to solve optimization problems, in research, and in machine learning
+## Input
 
-# The Algorithms
+Each CSV row is `index,weight,benefit`. Weight is in tons and benefit is in crore rupees, matching the units printed at the end. The file must sit next to the binary, because the program opens `Cargo_data.csv` from the working directory.
 
-  - Randomly initialize population
-  - Determine fitness of population
-- Repeat
-   - Select parents from population
-   - Perform crossover on parents creating population
-   - Perform mutation of population
-   - Determine fitness of population
-- Until best individual is good enough
+On startup the program asks for the hold capacity, then builds a population of 100 random bit-strings (`population_size`) and runs 75 generations (`generations`).
 
-# Randomizing Population
+## Steps in the code
 
-A population of individualsare is maintained within search space for a GA, each representing a possible solution to a given problem. Each individual is coded as a finite length vector of components, or variables, in terms of some alphabet, usually the binary alphabet {0,1}. To continue the genetic analogy these individuals are likened to chromosomes and the variables are analogous to genes. Thus a chromosome is composed of several genes. 
+1. `Create_Initial_Population` fills each individual with random 0/1 genes, one gene per cargo row.
+2. `fitness` sums weight and benefit for the loads whose gene is 1.
+3. `valid` / `make_valid` drop loads until the individual is under the capacity you typed.
+4. `crossover` replaces the lowest-benefit individual with the first four genes of the best individual and the remaining genes of the second-best.
+5. `mutation` flips one random gene on that same individual. `fitness_1` rescores it.
+6. After 75 generations, `knapsack_ans` ranks the population by benefit per ton. The program then prints the bit-string, population index, weight, and benefit of the highest-benefit individual.
 
-# Fitness Function
+The program sleeps one second every 15 generations so the generation log is readable. It uses `unistd.h` (`sleep`), so build it on Linux or another POSIX system.
 
-The fitness function simply defined is a function which takes a candidate solution to the problem as input and produces as output how “fit” our how “good” the solution is with respect to the problem in consideration.
+```bash
+g++ Cargo_load.cpp -o cargo
+./cargo
+```
 
-# Parents Selection
+Enter the capacity in tons when prompted. A population that cannot be made valid for that capacity is rejected inside `make_valid`.
 
-Parent Selection is the process of selecting parents which mate and recombine to create off-springs for the next generation. Parent selection is very crucial to the convergence rate of the GA as good parents drive individuals to a better and fitter solutions.
+## Terms
 
-# Crossover 
-
-The crossover operator is analogous to reproduction and biological crossover. In this more than one parent is selected and one or more off-springs are produced using the genetic material of the parents
-
-# Mutation
-
-In simple terms, mutation may be defined as a small random tweak in the chromosome, to get a new solution. It is used to maintain and introduce diversity in the genetic population. Mutation is the part of the GA which is related to the “exploration” of the search space. It has been observed that mutation is essential to the convergence of the GA while crossover is not. 
-
-# Survival Of Fittest
-
-The Survivor Selection Policy determines which individuals are to be kicked out and which are to be kept in the next generation. It is crucial as it should ensure that the fitter individuals are not kicked out of the population, while at the same time diversity should be maintained in the population.
-
-# System
-
-This will work fine in linux.To use in windows make sure you import right header files for sleep function and make few changes.
+| Term | In this program |
+| --- | --- |
+| Population | 100 candidate load lists |
+| Chromosome | One candidate, a vector of 0 and 1 |
+| Fitness | Total benefit of the loads that are both selected and under the weight limit |
+| Crossover | Overwrites the weakest individual with a splice of the best and second-best |
+| Mutation | Flips one gene of that weakest individual |
